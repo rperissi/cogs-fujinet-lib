@@ -437,29 +437,56 @@ static bool net_call(nunit_t *u, uint8_t cmd, uint8_t a1, uint8_t a2,
 
 static uint8_t ak_id[4];          /* creator lo, hi, app, key of the open key */
 static uint8_t ak_ram_id[4];
-static uint8_t ak_ram[FN_COGS_APPKEY];
-static uint8_t ak_ram_len, ak_ram_valid;
+static uint8_t ak_rec[1 + FN_COGS_APPKEY];   /* len, data: the RAM copy and the disk record */
+static uint8_t ak_ram_valid;
+
+#ifndef FN_COGS_APPKEY_NODISK
+bool fn_appkey_disk_read(const uint8_t *id, uint8_t *rec);
+bool fn_appkey_disk_write(const uint8_t *id, const uint8_t *rec);
+#endif
 
 /* The two appkey entry points stay in main RAM: fujinet-lib common code
- * calls them directly, and they touch no card registers anyway. */
+ * calls them directly, and the MLI is called from here. One key cached
+ * in RAM (the last one read or written); the rest come from the disk
+ * (appkey_disk.c), which on a read-only catalog volume means "not
+ * found" for reads and a quiet failure for writes. */
 bool fuji_bus_appkey_read(void *string, uint16_t *length)
 {
-    if (ak_ram_valid && !memcmp(ak_id, ak_ram_id, 4)) {
-        memcpy(string, ak_ram, ak_ram_len);
-        *length = ak_ram_len;
-        return true;
+    if (!(ak_ram_valid && !memcmp(ak_id, ak_ram_id, 4))) {
+#ifndef FN_COGS_APPKEY_NODISK
+        static bool ok;
+        COGS_LC_ENTER();
+        ok = fn_appkey_disk_read(ak_id, ak_rec);
+        COGS_LC_LEAVE();
+        if (!ok) {
+            *length = 0;
+            return false;
+        }
+        memcpy(ak_ram_id, ak_id, 4);
+        ak_ram_valid = 1;
+#else
+        *length = 0;
+        return false;
+#endif
     }
-    *length = 0;
-    return false;
+    memcpy(string, ak_rec + 1, ak_rec[0]);
+    *length = ak_rec[0];
+    return true;
 }
 
 bool fuji_bus_appkey_write(const void *string, uint16_t length)
 {
     if (length > FN_COGS_APPKEY) length = FN_COGS_APPKEY;
     memcpy(ak_ram_id, ak_id, 4);
-    memcpy(ak_ram, string, length);
-    ak_ram_len = (uint8_t)length;
+    memset(ak_rec, 0, sizeof ak_rec);
+    ak_rec[0] = (uint8_t)length;
+    memcpy(ak_rec + 1, string, length);
     ak_ram_valid = 1;
+#ifndef FN_COGS_APPKEY_NODISK
+    COGS_LC_ENTER();
+    fn_appkey_disk_write(ak_id, ak_rec);   /* best effort; RAM copy stands */
+    COGS_LC_LEAVE();
+#endif
     return true;
 }
 

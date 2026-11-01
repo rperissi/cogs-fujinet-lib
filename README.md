@@ -23,6 +23,9 @@ card firmware or the PolyForm `cogslib`.
 - `src/cogs_card.[ch]` card driver: slot scan, framing, reply wait.
 - `src/fujinet-bus-cogs.c` the bus: `fuji_bus_call`, `network_bus_read`,
   `network_bus_write`, `fuji_bus_appkey_read/write`.
+- `src/appkey_disk.c` + `src/mli.s` appkeys as files on the game's ProDOS
+  volume (`AK<creator><app><key>`, type $F1). Read-only volume: the write
+  fails quietly and the game asks again next boot.
 - `src/compat4.c` shims for apps that still ship fujinet-lib 4.x headers.
 - `tools/mkdisk.sh` wraps a cc65 executable in a bootable 140K ProDOS disk.
 - `tools/mame/run_app.sh` boots a disk headless on an emulated //e with the
@@ -47,6 +50,7 @@ Tunables (pass as `EXTRA_CFLAGS=-DNAME=value`):
 | `FN_COGS_URL` | 128 | longest URL |
 | `FN_COGS_HDRS` | 0 | request header buffer; 0 turns header collection off |
 | `FN_COGS_APPKEY` | 64 | appkey value size |
+| `FN_COGS_APPKEY_NODISK` | unset | keep appkeys in RAM only (no ProDOS files) |
 | `COGS_SLOT` | scan | fix the slot instead of scanning 7..1 |
 | `FN_COGS_NO_LC` | unset | keep the driver out of the language card segment |
 

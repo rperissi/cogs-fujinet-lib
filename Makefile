@@ -21,10 +21,12 @@ CFLAGS    = $(OPT) -t $(TARGET) -DBUILD_APPLE2 -I $(UPSTREAM)/include -I src $(E
 
 COMMON_SRC = $(wildcard $(UPSTREAM)/common/*.c)
 BUS_SRC    = $(wildcard src/*.c)
+BUS_ASM    = $(wildcard src/*.s)
 HEADERS    = $(wildcard $(UPSTREAM)/include/*.h) $(wildcard $(UPSTREAM)/include/*.inc)
 
 OBJS = $(patsubst $(UPSTREAM)/common/%.c,$(OBJDIR)/common_%.o,$(COMMON_SRC)) \
-       $(patsubst src/%.c,$(OBJDIR)/bus_%.o,$(BUS_SRC))
+       $(patsubst src/%.c,$(OBJDIR)/bus_%.o,$(BUS_SRC)) \
+       $(patsubst src/%.s,$(OBJDIR)/bus_%.o,$(BUS_ASM))
 
 .PHONY: all clean headers
 all: $(LIB) headers
@@ -37,6 +39,9 @@ $(OBJDIR)/common_%.o: $(UPSTREAM)/common/%.c | $(OBJDIR)
 
 $(OBJDIR)/bus_%.o: src/%.c | $(OBJDIR)
 	$(CC65) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/bus_%.o: src/%.s | $(OBJDIR)
+	$(CC65) -t $(TARGET) -c -o $@ $<
 
 $(LIB): $(OBJS)
 	rm -f $@
