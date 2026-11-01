@@ -45,7 +45,7 @@
 #define FN_COGS_UNITS 1          /* N: (unit 1) only, by default */
 #endif
 #ifndef FN_COGS_BUF
-#define FN_COGS_BUF 512          /* per-unit body / query / POST buffer */
+#define FN_COGS_BUF 768          /* per-unit body / query / POST buffer */
 #endif
 #ifndef FN_COGS_URL
 #define FN_COGS_URL 128
@@ -225,6 +225,15 @@ static void ensure_fetched(nunit_t *u)
         do_http(u, 0, 0, u->json);
 }
 
+/* The JSON and fuji-device paths run from the language card (bank 2,
+ * $D400-$DFFF, the cc65 "LC" segment the Apple II configs already carry)
+ * so they cost the game no main RAM. cc65's crt0 copies the segment up
+ * at start and keeps the bank enabled; ProDOS restores it around MLI
+ * calls. Opt out with -DFN_COGS_NO_LC if an app's linker config lacks LC. */
+#ifndef FN_COGS_NO_LC
+#pragma code-name (push, "LC")
+#endif
+
 /* FujiNet queries are JSON pointers, "/players/0/name"; the card walks
  * "players[0].name". Anything not starting with '/' passes through. */
 static uint8_t translate_path(const char *in, char *out)
@@ -324,6 +333,10 @@ static bool do_json_query(nunit_t *u, const char *query)
     return true;
 }
 
+#ifndef FN_COGS_NO_LC
+#pragma code-name (pop)
+#endif
+
 static bool net_call(nunit_t *u, uint8_t cmd, uint8_t a1, uint8_t a2,
                      const uint8_t *data, uint16_t data_len,
                      uint8_t *reply, uint16_t reply_len)
@@ -422,6 +435,10 @@ static bool net_call(nunit_t *u, uint8_t cmd, uint8_t a1, uint8_t a2,
 
 /* ---- fuji device --------------------------------------------------------- */
 
+#ifndef FN_COGS_NO_LC
+#pragma code-name (push, "LC")
+#endif
+
 static uint8_t ak_id[4];          /* creator lo, hi, app, key of the open key */
 static uint8_t ak_ram_id[4];
 static uint8_t ak_ram[FN_COGS_APPKEY];
@@ -484,6 +501,10 @@ static bool fuji_call(uint8_t cmd, const uint8_t *data, uint16_t data_len,
     }
     return false;
 }
+
+#ifndef FN_COGS_NO_LC
+#pragma code-name (pop)
+#endif
 
 /* ---- the bus entry points ------------------------------------------------ */
 

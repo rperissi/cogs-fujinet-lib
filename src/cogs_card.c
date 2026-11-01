@@ -15,6 +15,11 @@
 #include <string.h>
 #include "cogs_card.h"
 
+/* Runs from the language card; see the note in fujinet-bus-cogs.c. */
+#ifndef FN_COGS_NO_LC
+#pragma code-name ("LC")
+#endif
+
 uint16_t cogs_base = 0;
 uint8_t  cogs_slot = 0;
 
