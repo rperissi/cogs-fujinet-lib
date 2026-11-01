@@ -19,9 +19,9 @@
 #undef fuji_set_appkey_details
 #undef fuji_read_appkey
 
-#ifndef FN_COGS_NO_LC
-#pragma code-name ("LC")
-#endif
+/* Main RAM on purpose: apps call these directly, and an app may have
+ * switched the language card out (see COGS_LC_ENTER in cogs_card.h). The
+ * common code they reach goes through the guarded fuji_bus_call. */
 
 void fuji_set_appkey_details(uint16_t creator_id, uint8_t app_id, enum AppKeySize keysize)
 {

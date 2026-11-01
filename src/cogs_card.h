@@ -104,4 +104,33 @@ int8_t cogs_wait_reply(uint8_t want, void *out, uint16_t cap,
 extern uint16_t cogs_base;
 extern uint8_t  cogs_slot;
 
+/* Language card guard. The driver and the colder bus paths live in the LC
+ * segment (bank 2, $D400). cc65's crt0 leaves bank 2 read-enabled, but
+ * some apps switch the ROM in for an ID byte and never switch back
+ * (Battleship's identify.s does `bit $C082`), which makes the LC code
+ * vanish under us. Every entry point an app or fujinet-lib common code
+ * can reach from main RAM wraps its LC calls in these: ENTER re-enables
+ * bank 2 for reading, LEAVE puts the ROM back if that is how we found
+ * it. Read-only soft switches, no write enable, so ProDOS and the app's
+ * own LC use are untouched. Nests. No-ops when the LC segment is not
+ * used (FN_COGS_NO_LC). */
+#ifndef FN_COGS_NO_LC
+extern uint8_t cogs_lc_depth, cogs_lc_was_rom;
+/* The switches are poked with inline asm: cc65 drops a volatile read
+ * whose value goes nowhere, so `(void)*(volatile uint8_t *)0xC080` emits
+ * nothing. */
+#define COGS_LC_ENTER() do { \
+        if (cogs_lc_depth++ == 0) { \
+            cogs_lc_was_rom = !(*(volatile uint8_t *)0xC012 & 0x80); \
+            __asm__ ("bit $C080"); \
+        } } while (0)
+#define COGS_LC_LEAVE() do { \
+        if (--cogs_lc_depth == 0 && cogs_lc_was_rom) \
+            __asm__ ("bit $C082"); \
+        } while (0)
+#else
+#define COGS_LC_ENTER() do { } while (0)
+#define COGS_LC_LEAVE() do { } while (0)
+#endif
+
 #endif /* COGS_CARD_H */

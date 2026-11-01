@@ -52,7 +52,11 @@ Tunables (pass as `EXTRA_CFLAGS=-DNAME=value`):
 
 The card driver and the less hot bus paths go in the `LC` segment
 (language card bank 2, $D400) so the game keeps its main RAM. Every
-MekkoGX Apple II config already declares that segment.
+MekkoGX Apple II config already declares that segment. The entry points
+re-enable bank 2 for reading on the way in and put the ROM back on the
+way out if that is how they found it, because some apps switch the ROM in
+for an ID byte and never switch back (Battleship's `identify.s`), which
+would otherwise make the LC code disappear under the library.
 
 ## Build a game against it
 
@@ -73,7 +77,18 @@ already in `r2r/apple2/<prog>.a2s` by then. Then:
 
 Seeds the emulated card with Wi-Fi credentials, boots the disk, types the
 scheduled keys, snapshots every `FN_SNAP` seconds into `/tmp/fnapp-<name>/snap`
-and prints each HTTP transaction the card made.
+and prints each HTTP transaction the card made. `FN_PC=1` adds the 6502
+PC to each snapshot line, which is how the Battleship LC problem was found.
+
+Key schedules that reach a table on the live servers (emulated //e, throttled):
+
+| disk | keys |
+|---|---|
+| 5card, texas | `25:COGSTEST\r;55:\r;90:\r` |
+| fujitzee | `25:COGSTEST\r;55:\r;75:\r;95:\r;110:\r` |
+| battleship | `40:COGSTEST\r;60:\r;85:\r;115:\r` (title takes ~35 s, then help) |
+
+All four were seen seated at a table and polling state on 2026-11-01.
 
 ## What is and is not covered
 

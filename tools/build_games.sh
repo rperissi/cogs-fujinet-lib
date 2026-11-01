@@ -33,7 +33,7 @@ for row in "${SET[@]}"; do
     fi
     echo "### $repo"
     # MekkoGX errors at the disk step when acx is absent; the .a2s is done by then.
-    (cd "$dir" && make apple2 FUJINET_LIB="$REPO" >/dev/null 2>&1) || true
+    (cd "$dir" && make clean >/dev/null 2>&1; make apple2 FUJINET_LIB="$REPO" >/dev/null 2>&1) || true
     a2s="$dir/r2r/apple2/$prog.a2s"
     [ -f "$a2s" ] || { echo "error: $a2s not produced" >&2; exit 1; }
     "$HERE/mkdisk.sh" "$pname" "$a2s" "$REPO/dist/$disk" >/dev/null

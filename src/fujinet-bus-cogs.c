@@ -435,15 +435,13 @@ static bool net_call(nunit_t *u, uint8_t cmd, uint8_t a1, uint8_t a2,
 
 /* ---- fuji device --------------------------------------------------------- */
 
-#ifndef FN_COGS_NO_LC
-#pragma code-name (push, "LC")
-#endif
-
 static uint8_t ak_id[4];          /* creator lo, hi, app, key of the open key */
 static uint8_t ak_ram_id[4];
 static uint8_t ak_ram[FN_COGS_APPKEY];
 static uint8_t ak_ram_len, ak_ram_valid;
 
+/* The two appkey entry points stay in main RAM: fujinet-lib common code
+ * calls them directly, and they touch no card registers anyway. */
 bool fuji_bus_appkey_read(void *string, uint16_t *length)
 {
     if (ak_ram_valid && !memcmp(ak_id, ak_ram_id, 4)) {
@@ -464,6 +462,10 @@ bool fuji_bus_appkey_write(const void *string, uint16_t length)
     ak_ram_valid = 1;
     return true;
 }
+
+#ifndef FN_COGS_NO_LC
+#pragma code-name (push, "LC")
+#endif
 
 static bool fuji_call(uint8_t cmd, const uint8_t *data, uint16_t data_len,
                       uint8_t *reply, uint16_t reply_len)
@@ -536,12 +538,14 @@ bool fuji_bus_call(uint8_t device, uint8_t fuji_cmd, uint8_t fields, ...)
     }
     va_end(ap);
 
+    COGS_LC_ENTER();
     if (device == FUJI_DEVICEID_FUJINET) {
         ok = fuji_call(fuji_cmd, data, data_len, reply, reply_len);
     } else {
         u = unit_for(device);
         ok = u ? net_call(u, fuji_cmd, aux[0], aux[1], data, data_len, reply, reply_len) : false;
     }
+    COGS_LC_LEAVE();
     fn_device_error = !ok;
     return ok;
 }
@@ -553,8 +557,11 @@ size_t network_bus_read(uint8_t device, void *buffer, size_t length)
 
     if (!u || u->state == ST_CLOSED)
         return 0;
-    if (!u->json)
+    if (!u->json) {
+        COGS_LC_ENTER();
         ensure_fetched(u);
+        COGS_LC_LEAVE();
+    }
     f_room = u->len - u->pos;
     f_n = length < f_room ? (uint16_t)length : f_room;
     memcpy(d, u->buf + u->pos, f_n);

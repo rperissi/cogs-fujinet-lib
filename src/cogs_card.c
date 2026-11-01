@@ -22,6 +22,9 @@
 
 uint16_t cogs_base = 0;
 uint8_t  cogs_slot = 0;
+#ifndef FN_COGS_NO_LC
+uint8_t  cogs_lc_depth = 0, cogs_lc_was_rom = 0;
+#endif
 
 #define REG_DATA    (*(volatile uint8_t *)(cogs_base + 0))
 #define REG_STATUS  (*(volatile uint8_t *)(cogs_base + 1))

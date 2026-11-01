@@ -25,6 +25,11 @@ local function tick()
 	if snap_every > 0 and now ~= last_snap and now % snap_every == 0 then
 		last_snap = now
 		manager.machine.video:snapshot()
+		if os.getenv("FN_PC") then
+			-- where is the 6502? (FN_PC=1) handy when a screen stops moving
+			local cpu = manager.machine.devices[":maincpu"]
+			emu.print_info(string.format("FNAPP: t=%d pc=%04X", now, cpu.state["PC"].value))
+		end
 	end
 	for _, s in ipairs(schedule) do
 		if not s.done and now >= s.t then
