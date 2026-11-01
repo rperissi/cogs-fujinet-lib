@@ -45,6 +45,10 @@ $(LIB): $(OBJS)
 
 headers: | $(OBJDIR)
 	cp $(HEADERS) $(BUILD)/
+	@# MekkoGX defines FNLIB_VERSION_FULL from the .lib file name ("5.1.1")
+	@# and the dev-tree header says "v5.1.1-dev"; cc65 rejects the mismatch.
+	@# Stamp the installed header with the release form the file name has.
+	sed -i '' 's/^\(#define FNLIB_VERSION_FULL\).*/\1 "$(VERSION)"/' $(BUILD)/fujinet-version.h
 
 clean:
 	rm -rf $(BUILD)

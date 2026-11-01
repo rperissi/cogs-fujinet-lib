@@ -7,9 +7,9 @@ link against this library unmodified and run their HTTP and JSON traffic
 through a CoGS card in the slot instead of a FujiNet on the SmartPort.
 
 It exists so the FujiNet community's Apple II lobby games (5 Card Stud,
-Texas Hold'em, Fujitzee, Battleship) can be played from a CoGS card. The
-game servers are Eric Carr's; the game clients are unchanged. Only the bus
-layer is new.
+Texas Hold'em, Fujitzee, Battleship, Fujirkle) can be played from a CoGS
+card. The game servers are Eric Carr's; the game clients are unchanged.
+Only the bus layer is new.
 
 Licence: GPL-3.0, same as upstream fujinet-lib. The CoGS card driver in
 `src/cogs_card.c` was written from the published card protocol
@@ -69,7 +69,7 @@ already in `r2r/apple2/<prog>.a2s` by then. Then:
 
     /abs/path/to/cogs-fujinet-lib/tools/mkdisk.sh FCS r2r/apple2/fcs.a2s fcs-cogs.po
 
-`tools/build_games.sh` does the four lobby games in one go into `dist/`.
+`tools/build_games.sh` does the five lobby games in one go into `dist/`.
 
 ## Test headless
 
@@ -85,10 +85,10 @@ Key schedules that reach a table on the live servers (emulated //e, throttled):
 | disk | keys |
 |---|---|
 | 5card, texas | `25:COGSTEST\r;55:\r;90:\r` |
-| fujitzee | `25:COGSTEST\r;55:\r;75:\r;95:\r;110:\r` |
+| fujitzee, fujirkle | `25:COGSTEST\r;55:\r;75:\r;95:\r;110:\r` |
 | battleship | `40:COGSTEST\r;60:\r;85:\r;115:\r` (title takes ~35 s, then help) |
 
-All four were seen seated at a table and polling state on 2026-11-01.
+All five were seen seated at a table and polling state on 2026-11-01.
 
 ## What is and is not covered
 

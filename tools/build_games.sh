@@ -17,19 +17,20 @@ mkdir -p "$REPO/dist" "$GAMES"
 
 make -C "$REPO" >/dev/null
 
-# repo  prog  ProDOS-name  disk
+# owner/repo  prog  ProDOS-name  disk
 SET=(
-  "fujinet-5cardstud   fcs      FCS      5card-cogs.po"
-  "fujinet-texasHoldEm texas    TEXAS    texas-cogs.po"
-  "fujinet-fujitzee    fujitzee FUJITZEE fujitzee-cogs.po"
-  "fujinet-battleship  fbs      FBS      battleship-cogs.po"
+  "FujiNetWIFI/fujinet-5cardstud   fcs      FCS      5card-cogs.po"
+  "FujiNetWIFI/fujinet-texasHoldEm texas    TEXAS    texas-cogs.po"
+  "FujiNetWIFI/fujinet-fujitzee    fujitzee FUJITZEE fujitzee-cogs.po"
+  "FujiNetWIFI/fujinet-battleship  fbs      FBS      battleship-cogs.po"
+  "RichStephens/fujinet-fujirkle   fujirkle FUJIRKLE fujirkle-cogs.po"
 )
 
 for row in "${SET[@]}"; do
     read -r repo prog pname disk <<<"$row"
-    dir="$GAMES/$repo"
+    dir="$GAMES/${repo#*/}"
     if [ ! -d "$dir" ]; then
-        git clone --depth 1 "https://github.com/FujiNetWIFI/$repo" "$dir"
+        git clone --depth 1 "https://github.com/$repo" "$dir"
     fi
     echo "### $repo"
     # MekkoGX errors at the disk step when acx is absent; the .a2s is done by then.
