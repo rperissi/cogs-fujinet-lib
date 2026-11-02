@@ -2,3 +2,4 @@ build/
 dist/
 _cache/
 *.map
+.DS_Store
